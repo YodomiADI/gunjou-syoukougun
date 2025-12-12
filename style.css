@@ -1,0 +1,93 @@
+/* ベース設定：藍色の背景と読みやすい文字色 */
+body {
+    background-color: #0f172a; /* 深い藍色 */
+    color: #cbd5e1; /* 薄いグレー（白すぎず目に優しい） */
+    font-family: 'Shippori Mincho', serif; /* 明朝体 */
+    line-height: 2.0; /* 小説らしく行間を広めに */
+    margin: 0;
+    padding: 0;
+}
+
+/* リンクの色 */
+a {
+    color: #93c5fd;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+a:hover {
+    color: #60a5fa;
+    text-shadow: 0 0 5px #60a5fa;
+}
+
+/* ヘッダーデザイン */
+.site-header {
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(to bottom, #020617, #0f172a);
+}
+
+.site-header h1 {
+    font-size: 2.5rem;
+    letter-spacing: 0.2em;
+    margin-bottom: 20px;
+    font-weight: 400;
+}
+
+.site-header nav ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}
+
+/* メインコンテンツの幅制限（読みやすくする） */
+.container {
+    max-width: 800px; /* 横幅を広げすぎない */
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* ノベル本文のデザイン */
+.novel-text p {
+    margin-bottom: 2em; /* 段落ごとの間隔 */
+    text-align: justify; /* 文字を両端揃えに */
+}
+
+/* 区切り線 */
+.fade-line {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(147, 197, 253, 0.5), rgba(0, 0, 0, 0));
+    margin: 40px 0;
+}
+
+/* 見出しのデザイン */
+h2 {
+    border-bottom: 1px solid #334155;
+    padding-bottom: 10px;
+    margin-top: 60px;
+    margin-bottom: 30px;
+    font-size: 1.5rem;
+    letter-spacing: 0.1em;
+}
+
+/* フッター */
+footer {
+    text-align: center;
+    padding: 40px;
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 50px;
+}
+
+/* スマホ対応 */
+@media (max-width: 600px) {
+    .site-header h1 {
+        font-size: 1.8rem;
+    }
+    .container {
+        padding: 15px;
+    }
+}
