@@ -91,3 +91,56 @@ footer {
         padding: 15px;
     }
 }
+
+/* 世界観：ポエムのような中央揃えデザイン */
+.poetic-text {
+    text-align: center;
+    margin: 60px 0;
+    font-style: italic; /* 斜体にして詩的な雰囲気に */
+    letter-spacing: 0.15em;
+}
+
+/* キャラクター紹介のレイアウト */
+.char-card {
+    display: flex; /* 画像と文章を横並びにする */
+    align-items: center; /* 上下の中心を揃える */
+    gap: 40px; /* 画像と文章の間隔 */
+    margin-bottom: 60px;
+    background: rgba(255, 255, 255, 0.05); /* うっすら背景色をつける */
+    padding: 30px;
+    border-radius: 15px; /* 角を丸く */
+    border: 1px solid rgba(147, 197, 253, 0.2); /* 薄い枠線 */
+}
+
+/* キャラクター画像 */
+.char-img img {
+    max-width: 250px; /* 画像の最大幅 */
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(147, 197, 253, 0.2); /* ぼんやり光る影 */
+}
+
+/* キャラクター情報のテキスト */
+.char-info h3 {
+    margin-top: 0;
+    font-size: 1.8rem;
+    color: #93c5fd; /* 名前を水色に */
+}
+
+.char-role {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-bottom: 20px;
+}
+
+/* スマホで見た時の調整（縦並びにする） */
+@media (max-width: 700px) {
+    .char-card {
+        flex-direction: column; /* 縦並び */
+        text-align: center;
+    }
+    
+    .char-img img {
+        max-width: 80%; /* スマホでは少し大きめに */
+    }
+}
