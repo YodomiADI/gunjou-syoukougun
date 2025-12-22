@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ゲームタイトル｜Official Site</title>
+    <title>群青症候群｜Official Site</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700&display=swap" rel="stylesheet">
@@ -84,8 +84,14 @@
             
             <div class="char-card">
                 <div class="char-img">
-                    <img src="images/kokorone.png" alt="ココロネ">
-                </div>
+                     <div class="slider-container">
+                        <button class="nav-btn prev-btn" onclick="changeImage(-1)"></button>
+                        
+                        <img id="charImage" src="images/kokorone1.png" alt="ココロネ">
+                        
+                        <button class="nav-btn next-btn" onclick="changeImage(1)"></button>
+                     </div>
+                     </div>
                 <div class="char-info">
                     <h3>ココロネ</h3>
                     <p class="char-role">心が読める少女</p>
@@ -98,13 +104,38 @@
                 </div>
             </div>
             
-            </section>
+        </section>
 
     </main>
 
     <footer>
         <p>&copy; 2024 YodomiADI / Studio YomiDomi</p>
     </footer>
+
+    <script>
+        //ボタンを押したときに画像が切り替わる「動き」のプログラム
+        const images = [
+            "images/kokorone1.png",
+            "images/kokorone2.png"
+            // ※注意: kokorone3.png という画像ファイルがないと、3枚目で空白になります！
+            // 画像が2枚しかない場合は、上の行を削除してください。
+        ];
+
+        let currentIndex = 0; 
+
+        function changeImage(direction) {
+            currentIndex += direction;
+
+            if (currentIndex >= images.length) {
+                currentIndex = 0;
+            }
+            else if (currentIndex < 0) {
+                currentIndex = images.length - 1;
+            }
+
+            document.getElementById("charImage").src = images[currentIndex];
+        }
+    </script>
 
 </body>
 </html>

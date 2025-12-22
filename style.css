@@ -144,3 +144,66 @@ footer {
         max-width: 80%; /* スマホでは少し大きめに */
     }
 }
+/* --- 画像切り替えボタンのデザイン --- */
+
+/* スライダーの基準位置設定 */
+.slider-container {
+    position: relative; /* ボタンを画像の上に重ねるために必要 */
+    display: inline-block; /* 画像の幅に合わせる */
+}
+
+/* ボタンの共通スタイル */
+.nav-btn {
+    position: absolute;
+    top: 50%; /* 縦の真ん中に */
+    transform: translateY(-50%); /* 真ん中補正 */
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 20px; /* クリックしやすいように当たり判定を広げる */
+    opacity: 0.5; /* 半透明にする */
+    transition: 0.3s;
+    z-index: 10; /* 画像より手前に表示 */
+}
+
+.nav-btn:hover {
+    opacity: 1.0; /* マウスを乗せるとくっきり表示 */
+    scale: 1.2; /* 少し大きくなる */
+}
+
+/* 左の三角ボタン（CSSで描画） */
+.prev-btn::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 0;
+    border-top: 15px solid transparent;
+    border-bottom: 15px solid transparent;
+    border-right: 25px solid #93c5fd; /* 右向きの三角形（色はリンクと同じ水色） */
+}
+/* 左配置 */
+.prev-btn {
+    left: -40px; /* 画像の少し左外側へ */
+}
+
+
+/* 右の三角ボタン */
+.next-btn::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 0;
+    border-top: 15px solid transparent;
+    border-bottom: 15px solid transparent;
+    border-left: 25px solid #93c5fd; /* 左向きの三角形 */
+}
+/* 右配置 */
+.next-btn {
+    right: -40px; /* 画像の少し右外側へ */
+}
+
+/* スマホ用調整：ボタンを画像の内側に入れる */
+@media (max-width: 700px) {
+    .prev-btn { left: 0; }
+    .next-btn { right: 0; }
+}
