@@ -279,3 +279,45 @@ footer {
     background: rgba(147, 197, 253, 0.2);
     border-color: #93c5fd;
 }
+
+/* --- 死期タイマーのデザイン --- */
+.death-timer {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    /* ↓ここを修正：上下中央補正を消して、左右中央補正のみにする */
+    transform: translateX(-50%);
+    
+    font-family: 'Courier New', monospace; /* 機械的な等幅フォント */
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.9); /* 白く光る文字 */
+    text-shadow: 0 0 10px #ef4444, 0 0 20px #7f1d1d; /* 赤黒い不吉な光彩 */
+    
+    pointer-events: none; /* マウスの邪魔をしないようにする */
+    opacity: 0; /* 最初は隠しておく */
+    transition: opacity 0.3s; /* ふわっと表示させる */
+    
+    /* 文字が折り返されないようにする */
+    white-space: nowrap;
+    z-index: 5;
+}
+
+/* 表示状態のクラス */
+.death-timer.visible {
+    opacity: 1;
+}
+
+/* スマホ対応：文字サイズ調整 */
+@media (max-width: 700px) {
+    .death-timer {
+        font-size: 1.5rem;
+    }
+}
+
+/* スマホで長押しした時に、画像選択メニューが出ないようにする */
+#charImage {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}

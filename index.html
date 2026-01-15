@@ -105,6 +105,8 @@
                         
                         <img id="charImage" src="images/kokorone1.png" alt="ココロネ">
                         
+                        <div id="deathTimer" class="death-timer">0:0:0:00:00</div>
+
                         <button class="nav-btn next-btn" onclick="changeImage(1)"></button>
                      </div>
                      </div>
@@ -200,6 +202,80 @@
         bgmBtn.innerHTML = '<span style="color:#64748b;">🔇</span> OFF';
         bgmBtn.style.borderColor = "#64748b";
     }
+
+    // --- 死期タイマー（観測システム） ---
+
+    // 設定：初期残り時間（6日と3時間）
+    // 計算式: (6日 * 24時間 * 3600秒) + (3時間 * 3600秒)
+    let totalSeconds = (6 * 24 * 60 * 60) + (3 * 60 * 60);
+
+    const timerDisplay = document.getElementById("deathTimer");
+    const imageContainer = document.querySelector(".slider-container"); // 画像のエリア
+    let timerInterval = null; // タイマーの管理用
+
+    // ページを開いた瞬間から、1秒ごとにずっと実行し続ける
+    setInterval(() => {
+        if (totalSeconds > 0) {
+            totalSeconds--; // 裏側で常に1秒ずつ減らす
+        }
+        
+        // もし今「観測中（visibleクラスがある）」なら、画面の数字を更新する
+        if (timerDisplay.classList.contains("visible")) {
+            timerDisplay.innerText = formatTime(totalSeconds);
+        }
+    }, 1000);
+
+    // 時間を "月:日:時:分:秒" の形にする関数
+    function formatTime(seconds) {
+        if (seconds < 0) seconds = 0;
+
+        // 1ヶ月 = 30日として簡易計算
+        const m = Math.floor(seconds / (30 * 24 * 3600));
+        let remainder = seconds % (30 * 24 * 3600);
+
+        const d = Math.floor(remainder / (24 * 3600));
+        remainder %= (24 * 3600);
+
+        const h = Math.floor(remainder / 3600);
+        remainder %= 3600;
+
+        const min = Math.floor(remainder / 60);
+        const s = remainder % 60;
+
+        // ゼロ埋め（1桁なら0をつける）
+        const paddedMin = String(min).padStart(2, '0');
+        const paddedS = String(s).padStart(2, '0');
+
+        return `${m}:${d}:${h}:${paddedMin}:${paddedS}`;
+    }
+
+    // タイマーを進める処理
+    function updateTimer() {
+        if (totalSeconds > 0) {
+            totalSeconds--; // 1秒減らす
+            timerDisplay.innerText = formatTime(totalSeconds);
+        }
+    }
+
+    // 観測開始（表示をONにするだけ）
+    function startObserving() {
+        timerDisplay.innerText = formatTime(totalSeconds); // その瞬間の時間を表示
+        timerDisplay.classList.add("visible");
+    }
+
+    // 観測終了（表示をOFFにするだけ）
+    function stopObserving() {
+        timerDisplay.classList.remove("visible");
+    }
+    // イベント登録
+    // PC用（マウス）
+    imageContainer.addEventListener("mouseenter", startObserving);
+    imageContainer.addEventListener("mouseleave", stopObserving);
+
+    // スマホ用（タッチ）
+    imageContainer.addEventListener("touchstart", startObserving, {passive: true});
+    imageContainer.addEventListener("touchend", stopObserving);
+    imageContainer.addEventListener("touchcancel", stopObserving);
     </script>
 
 </body>
