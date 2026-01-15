@@ -10,7 +10,23 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <audio id="bgmAudio" loop>
+        <source src="audio/bgm.mp3" type="audio/mpeg">
+    </audio>
 
+    <div id="startModal" class="modal-overlay">
+        <div class="modal-content">
+            <p>このサイトはBGMが流れます。<br>再生しますか？</p>
+            <div class="modal-buttons">
+                <button onclick="startSite(true)">はい</button>
+                <button onclick="startSite(false)">いいえ</button>
+            </div>
+        </div>
+    </div>
+
+    <button id="bgmToggleBtn" class="bgm-float-btn" onclick="toggleBgm()">
+        <span id="bgmIcon">🔇</span> OFF
+    </button>
     <header class="site-header">
         <h1>群青症候群</h1>
         <nav>
@@ -135,6 +151,55 @@
 
             document.getElementById("charImage").src = images[currentIndex];
         }
+        // --- BGM制御のプログラム ---
+    
+    const bgmAudio = document.getElementById("bgmAudio");
+    const bgmBtn = document.getElementById("bgmToggleBtn");
+    const bgmIcon = document.getElementById("bgmIcon");
+    const modal = document.getElementById("startModal");
+
+    // 音量設定（0.0 〜 1.0）
+    bgmAudio.volume = 0.3; // うるさすぎないように30%に設定
+
+    // サイト開始（はい/いいえボタン）
+    function startSite(allowMusic) {
+        // モーダルをフェードアウトして消す
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.style.display = 'none';
+            // 切り替えボタンを表示する
+            bgmBtn.style.display = 'block';
+        }, 500);
+
+        if (allowMusic) {
+            playBgm();
+        } else {
+            pauseBgm();
+        }
+    }
+
+    // BGM切り替えボタンを押したとき
+    function toggleBgm() {
+        if (bgmAudio.paused) {
+            playBgm();
+        } else {
+            pauseBgm();
+        }
+    }
+
+    // 再生処理と見た目の更新
+    function playBgm() {
+        bgmAudio.play();
+        bgmBtn.innerHTML = '<span style="color:#93c5fd;">🔊</span> ON';
+        bgmBtn.style.borderColor = "#93c5fd";
+    }
+
+    // 停止処理と見た目の更新
+    function pauseBgm() {
+        bgmAudio.pause();
+        bgmBtn.innerHTML = '<span style="color:#64748b;">🔇</span> OFF';
+        bgmBtn.style.borderColor = "#64748b";
+    }
     </script>
 
 </body>
