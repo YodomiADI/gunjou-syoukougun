@@ -315,9 +315,14 @@ footer {
     }
 }
 
-/* スマホで長押しした時に、画像選択メニューが出ないようにする */
+/* --- 画像の長押しメニュー対策 --- */
 #charImage {
+    /* 画像を長押ししてもメニューを出さない（iOS用） */
     -webkit-touch-callout: none;
+    
+    /* 選択できないようにする */
     -webkit-user-select: none;
     user-select: none;
+    
+    /* ※注意：pointer-events: none; は書かないでください（クリックできなくなります） */
 }
