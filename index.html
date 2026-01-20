@@ -97,7 +97,7 @@
             
             <div class="char-card">
                 <div class="char-img">
-                     <div id="deathTimer" class="death-timer-container"></div> <div class="slider-container">
+                      <div class="slider-container">
                             <button class="nav-btn prev-btn" onclick="changeImage(-1)"></button>
                             <img id="charImage" src="images/kokorone1.png" alt="ココロネ">
         
@@ -126,127 +126,6 @@
         <p>&copy; 2024 YodomiADI / Studio YomiDomi</p>
     </footer>
 
-    <script>
-        // --- 共通変数 ---
-    let totalSeconds = (6 * 24 * 60 * 60) + (3 * 60 * 60);
-    const timerDisplay = document.getElementById("deathTimer");
-    const imageContainer = document.querySelector(".slider-container");
-    const bgmBtn = document.getElementById("bgmToggleBtn");
-    const modal = document.getElementById("startModal");
-
-    // --- 画像切り替え ---
-    const images = ["images/kokorone1.png", "images/kokorone2.png"];
-    let currentIndex = 0; 
-    function changeImage(direction) {
-        currentIndex = (currentIndex + direction + images.length) % images.length;
-        document.getElementById("charImage").src = images[currentIndex];
-    }
-
-    // --- BGM制御 (Web Audio API: 隙間なしループ) ---
-    let audioContext = null;
-    let bgmSource = null;
-    let bgmBuffer = null;
-    let isPlaying = false;
-    const bgmUrl = 'audio/bgm.m4a'; // パスが正しいか確認してください
-
-    async function loadAudio() {
-        try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioContext = new AudioContext();
-            const response = await fetch(bgmUrl);
-            if (!response.ok) throw new Error("ファイルが見つかりません");
-            const arrayBuffer = await response.arrayBuffer();
-            bgmBuffer = await audioContext.decodeAudioData(arrayBuffer);
-            console.log("BGM読み込み完了");
-        } catch (e) {
-            console.error("BGMエラー:", e);
-            // 万が一Web Audioが失敗した時のための予備（通常再生）
-        }
-    }
-
-    async function startSite(allowMusic) {
-        modal.style.opacity = '0';
-        setTimeout(() => {
-            modal.style.display = 'none';
-            bgmBtn.style.display = 'block';
-        }, 500);
-
-        if (allowMusic) {
-            await loadAudio();
-            playBgm();
-        }
-    }
-
-    function toggleBgm() {
-        if (isPlaying) stopBgm(); else playBgm();
-    }
-
-    function playBgm() {
-        if (!bgmBuffer) return;
-        if (audioContext.state === 'suspended') audioContext.resume();
-        bgmSource = audioContext.createBufferSource();
-        bgmSource.buffer = bgmBuffer;
-        bgmSource.loop = true;
-        const gainNode = audioContext.createGain();
-        gainNode.gain.value = 1.0; 
-        bgmSource.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        bgmSource.start(0);
-        isPlaying = true;
-        updateBtnView(true);
-    }
-
-    function stopBgm() {
-        if (bgmSource) { bgmSource.stop(); bgmSource = null; }
-        isPlaying = false;
-        updateBtnView(false);
-    }
-
-    function updateBtnView(on) {
-        bgmBtn.innerHTML = on ? '<span style="color:#93c5fd;">🔊</span> ON' : '<span style="color:#64748b;">🔇</span> OFF';
-        bgmBtn.style.borderColor = on ? "#93c5fd" : "#64748b";
-    }
-
-    // --- 死期タイマー (常時カウント) ---
-    setInterval(() => {
-        if (totalSeconds > 0) totalSeconds--;
-        if (timerDisplay.classList.contains("visible")) {
-            timerDisplay.innerText = formatTime(totalSeconds);
-        }
-    }, 1000);
-
-    function formatTime(seconds) {
-        if (seconds < 0) seconds = 0;
-        const m = Math.floor(seconds / (30 * 24 * 3600));
-        let rem = seconds % (30 * 24 * 3600);
-        const d = Math.floor(rem / (24 * 3600));
-        rem %= (24 * 3600);
-        const h = Math.floor(rem / 3600);
-        rem %= 3600;
-        const min = Math.floor(rem / 60);
-        const s = rem % 60;
-        return `${m}:${d}:${h}:${String(min).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    }
-
-    // --- 観測システム (マウス・タッチ) ---
-    function startObserving(e) {
-        // 【重要】e が定義されていないエラーを防ぐ
-        if(e && e.type === 'touchstart') {
-            // e.cancelable が true の時だけ preventDefault を呼ぶ（ブラウザエラー回避）
-            if (e.cancelable) e.preventDefault();
-        }
-        timerDisplay.innerText = formatTime(totalSeconds);
-        timerDisplay.classList.add("visible");
-    }
-
-    function stopObserving() {
-        timerDisplay.classList.remove("visible");
-    }
-
-    imageContainer.addEventListener("mouseenter", startObserving);
-    imageContainer.addEventListener("mouseleave", stopObserving);
-    imageContainer.addEventListener("touchstart", startObserving, {passive: false});
-    imageContainer.addEventListener("touchend", stopObserving);
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
