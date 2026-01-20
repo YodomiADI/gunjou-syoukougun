@@ -280,89 +280,7 @@ footer {
     border-color: #93c5fd;
 }
 
-/* --- 死期タイマーのデザイン --- */
-.death-timer {
-    position: absolute;
-    top: 20%;
-    left: 50%;
-    /* ↓ここを修正：上下中央補正を消して、左右中央補正のみにする */
-    transform: translateX(-50%);
-    
-    font-family: 'Courier New', monospace; /* 機械的な等幅フォント */
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: rgba(255, 255, 255, 0.9); /* 白く光る文字 */
-    text-shadow: 0 0 10px #ef4444, 0 0 20px #7f1d1d; /* 赤黒い不吉な光彩 */
-    
-    pointer-events: none; /* マウスの邪魔をしないようにする */
-    opacity: 0; /* 最初は隠しておく */
-    transition: opacity 0.3s; /* ふわっと表示させる */
-    
-    /* 文字が折り返されないようにする */
-    white-space: nowrap;
-    z-index: 5;
-}
-
-/* 表示状態のクラス */
-.death-timer.visible {
-    opacity: 1;
-}
-
-/* スマホ対応：文字サイズ調整 */
-@media (max-width: 700px) {
-    .death-timer {
-        font-size: 1.5rem;
-    }
-}
-
-/* --- 画像の長押しメニュー対策 --- */
-#charImage {
-    /* 画像を長押ししてもメニューを出さない（iOS用） */
-    -webkit-touch-callout: none;
-    
-    /* 選択できないようにする */
-    -webkit-user-select: none;
-    user-select: none;
-    
-    /* ※注意：pointer-events: none; は書かないでください（クリックできなくなります） */
-}
-
-/* タイマー全体の並び */
-.death-timer-container {
-    position: absolute;
-    top: 15%; /* キャラクターの頭上など、お好みの位置 */
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: -10px; /* 数字同士の隙間を詰めたい場合はマイナス値を調整 */
-    z-index: 100;
-    pointer-events: none; /* クリックを邪魔しない */
-    opacity: 0;
-    transition: opacity 0.5s;
-}
-
-/* 観測中のみ表示 */
-.death-timer-container.visible {
-    opacity: 1;
-}
-
-/* 各数字・コロンの共通設定 */
-.sprite-char {
-    /* 表示したいサイズ（512pxをどれくらいに縮小するか） */
-    width: 80px; 
-    height: 80px;
-    
-    /* スプライトシート全体のサイズも比率を合わせて指定（80px * 12列 / 80px * 13行） */
-    background-size: 960px 1040px; 
-    background-repeat: no-repeat;
-    
-    /* 黒背景を透過して光を馴染ませる */
-    mix-blend-mode: screen;
-    
-    /* 滲みを綺麗に見せるためのレンダリング設定 */
-    image-rendering: auto;
-}
-/* 死期タイマーコンテナ */
+/* 死期タイマーコンテナ（スプライト用） */
 .death-timer-container {
     position: absolute;
     top: 20%;
@@ -375,21 +293,21 @@ footer {
     opacity: 0;
     transition: opacity 0.3s;
     z-index: 10;
+    white-space: nowrap; /* 改行防止 */
 }
 
 .death-timer-container.visible {
     opacity: 1;
 }
 
-/* 各スプライト文字の設定 */
+/* 各数字スプライトの設定 */
 .sprite-char {
-    /* 512pxの元画像をどのサイズで表示するか（スマホに合わせて調整） */
-    width: 60px; 
-    height: 60px;
+    width: 40px;  /* 表示サイズ */
+    height: 40px;
+    background-size: 480px 520px; /* 60px * 12列 / 60px * 13行 */
+    background-repeat: repeat;
+    mix-blend-mode: lighten; /* 黒背景透過 */
+    margin: 0 -8px; /* 数字同士を少し重ねて不気味さを出す */
+    image-rendering: pixelated; /* ぼやける場合はここを調整 */
     
-    /* 12列×13行の比率に合わせて全体サイズを指定（60px * 12列 / 60px * 13行） */
-    background-size: 720px 780px; 
-    background-repeat: no-repeat;
-    mix-blend-mode: screen; /* 黒背景を透過 */
-    margin: 0 -5px; /* 数字の間隔が広い場合はマイナス値で調整 */
 }

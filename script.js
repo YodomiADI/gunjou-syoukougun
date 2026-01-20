@@ -1,3 +1,5 @@
+window.onload = function() {
+
 // --- 設定定数 ---
 const FRAME_W = 512;
 const COLS = 12;
@@ -130,11 +132,18 @@ function updateBtnView(on) {
     bgmBtn.innerHTML = on ? '<span style="color:#93c5fd;">🔊</span> ON' : '<span style="color:#64748b;">🔇</span> OFF';
 }
 
+// 最後に実行開始の命令を入れる
+    setInterval(updateTimerDisplay, 1000);
+    animate(); // パラパラアニメ開始
+
 // --- 5. イベント登録と実行開始 ---
 sliderContainer.addEventListener("mouseenter", startObserving);
 sliderContainer.addEventListener("mouseleave", stopObserving);
 sliderContainer.addEventListener("touchstart", startObserving, {passive: false});
 sliderContainer.addEventListener("touchend", stopObserving);
 
-setInterval(updateTimerDisplay, 1000);
-animate(); // パラパラアニメ開始
+// script.js内から呼び出せるようにグローバルに関数を公開（ボタンonclick用）
+    window.startSite = startSite;
+    window.toggleBgm = toggleBgm;
+    window.changeImage = changeImage;
+};
