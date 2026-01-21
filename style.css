@@ -102,6 +102,7 @@ footer {
 
 /* キャラクター紹介のレイアウト */
 .char-card {
+    position: relative; /* これが必要 */
     display: flex; /* 画像と文章を横並びにする */
     align-items: center; /* 上下の中心を揃える */
     gap: 40px; /* 画像と文章の間隔 */
@@ -118,6 +119,8 @@ footer {
     height: auto;
     border-radius: 10px;
     box-shadow: 0 0 15px rgba(147, 197, 253, 0.2); /* ぼんやり光る影 */
+    position: relative;
+    z-index: 1; /* ベース */
 }
 
 /* キャラクター情報のテキスト */
@@ -149,7 +152,9 @@ footer {
 /* スライダーの基準位置設定 */
 .slider-container {
     position: relative; /* ボタンを画像の上に重ねるために必要 */
+    z-index: 1;
     display: inline-block; /* 画像の幅に合わせる */
+
 }
 
 /* ボタンの共通スタイル */
@@ -283,17 +288,28 @@ footer {
 /* 死期タイマーコンテナ（スプライト用） */
 .death-timer-container {
     position: absolute;
-    top: 20%;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 30%;
+    left: 20%;
+
+    /* 重要：ここを変えます */
+    /* translateX(-50%) で中央揃えしつつ、scale(0.125) で1/8サイズにする */
+    /* (512px * 0.125 = 64px) */
+    transform: translateX(-50%) scale(0.125);
+    transform-origin: top center; /* 縮小の基準点を上中央に */
+
     display: flex;
     justify-content: center;
     align-items: center;
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.3s;
-    z-index: 10;
-    white-space: nowrap; /* 改行防止 */
+    
+    z-index: 100; /* 一番手前に */
+    mix-blend-mode: screen; /* これで z-index:1 の画像と混ざるはず */
+
+    /* 縮小しても元の512px分の場所を取ってしまうので、下の余白を打ち消す */
+    margin-bottom: -450px;
+    filter: drop-shadow(0 0 12px rgba(255, 0, 0, 0.7));
 }
 
 .death-timer-container.visible {
@@ -302,12 +318,23 @@ footer {
 
 /* 各数字スプライトの設定 */
 .sprite-char {
-    width: 40px;  /* 表示サイズ */
-    height: 40px;
-    background-size: 480px 520px; /* 60px * 12列 / 60px * 13行 */
+    /* 本来のサイズに戻す */
+    width: 256px;
+    height: 256px;
+    
+    /* シート全体のサイズも本来の巨大なサイズに戻す */
+    /* 横: 512 * 12 = 6144px */
+    /* 縦: 512 * 13 = 6656px */
+    background-size: 3072px 3328px;
+
+    background-image: url('assets/timer/${fileNum}-sheet.png');
     background-repeat: repeat;
-    mix-blend-mode: lighten; /* 黒背景透過 */
+    
+    filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.8)) brightness(1.3) contrast(1.2);
+    mix-blend-mode: screen;  /* 黒背景透過 */
+    
     margin: 0 -8px; /* 数字同士を少し重ねて不気味さを出す */
     image-rendering: pixelated; /* ぼやける場合はここを調整 */
+
     
 }
