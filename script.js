@@ -1,13 +1,19 @@
 window.onload = function() {
 
 // --- 設定定数 ---
-const FRAME_W = 512;
+
 const COLS = 12;
 const ROWS = 13;
 const TOTAL_FRAMES = 145;
 const FPS = 30;
 
 let currentFrame = 0;
+
+const CHAR_FILE_MAP = {
+    ':': '10',
+    '0': '0', '1': '1', '2': '2', '3': '3', '4': '4',
+    '5': '5', '6': '6', '7': '7', '8': '8', '9': '9'
+};
 let totalSeconds = (6 * 24 * 60 * 60) + (3 * 60 * 60); // 6日3時間
 const images = ["images/kokorone1.png", "images/kokorone2.png"];
 let currentIndex = 0;
@@ -22,18 +28,25 @@ const modal = document.getElementById("startModal");
 // --- 1. スプライトアニメーション (パラパラ漫画) ---
 function animate() {
     const chars = document.querySelectorAll('.sprite-char');
-    
+    if (chars.length === 0) { // 要素がない時はスキップしてエラー防止
+        requestAnimationFrame(animate);
+        return;
+    }
+
+    // スプライトシート内の位置（列と行）を計算
     const col = currentFrame % COLS;
     const row = Math.floor(currentFrame / COLS);
     
-    // 背景位置のパーセント計算
-    const posX = col * (100 / (COLS - 1));
-    const posY = row * (100 / (ROWS - 1));
+    // パーセント指定での座標計算
+    const posX = (col / (COLS - 1)) * 100;
+    const posY = (row / (ROWS - 1)) * 100;
 
+    // 全ての数字要素の背景位置を一斉に更新
     chars.forEach(el => {
         el.style.backgroundPosition = `${posX}% ${posY}%`;
     });
 
+    // 次のフレームへ（145枚までいったら0に戻る）
     currentFrame = (currentFrame + 1) % TOTAL_FRAMES;
     
     setTimeout(() => {
@@ -63,11 +76,12 @@ function updateTimerDisplay() {
         for (let char of timeStr) {
             const div = document.createElement('div');
             div.className = 'sprite-char';
-            if (char === ':') {
-                div.style.backgroundImage = "url('assets/timer/colon.webp')";
-            } else {
-                div.style.backgroundImage = `url('assets/timer/num${char}.webp')`;
-            }
+
+            // 文字に対応するファイル名を取得（例：':'なら'10'）
+            const fileNum = CHAR_FILE_MAP[char];
+            // 画像パスを生成（※タイポに注意！ assets です）
+            div.style.backgroundImage = `url('assets/timer/${fileNum}-sheet.png')`;
+            
             timerContainer.appendChild(div);
         }
         timerContainer.dataset.lastTime = timeStr;
@@ -134,6 +148,7 @@ function updateBtnView(on) {
 
 // 最後に実行開始の命令を入れる
     setInterval(updateTimerDisplay, 1000);
+    updateTimerDisplay();
     animate(); // パラパラアニメ開始
 
 // --- 5. イベント登録と実行開始 ---
