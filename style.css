@@ -287,54 +287,59 @@ footer {
 
 /* 死期タイマーコンテナ（スプライト用） */
 .death-timer-container {
-    position: absolute;
-    top: 30%;
-    left: 20%;
-
-    /* 重要：ここを変えます */
-    /* translateX(-50%) で中央揃えしつつ、scale(0.125) で1/8サイズにする */
-    /* (512px * 0.125 = 64px) */
-    transform: translateX(-50%) scale(0.125);
-    transform-origin: top center; /* 縮小の基準点を上中央に */
-
     display: flex;
     justify-content: center;
     align-items: center;
-    pointer-events: none;
+    gap: 2px; /* 画像同士の隙間を少し詰める */
+    
+    position: absolute;
+    top: 30%;
+    left: 20%;
+    transform: translateX(-50%);
+    z-index: 100;
+    
+    /* 初期状態は透明 */
     opacity: 0;
-    transition: opacity 0.3s;
-    
-    z-index: 100; /* 一番手前に */
-    mix-blend-mode: screen; /* これで z-index:1 の画像と混ざるはず */
+    pointer-events: none; /* タイマー自体がマウスの邪魔をしないように */
+    transition: opacity 0.4s ease; /* ふわっと出す */
 
-    /* 縮小しても元の512px分の場所を取ってしまうので、下の余白を打ち消す */
-    margin-bottom: -450px;
-    filter: drop-shadow(0 0 12px rgba(255, 0, 0, 0.7));
 }
 
-.death-timer-container.visible {
-    opacity: 1;
+.death-timer-container.is-visible {
+    opacity: 1 !important;
+    
 }
 
-/* 各数字スプライトの設定 */
-.sprite-char {
-    /* 本来のサイズに戻す */
-    width: 256px;
-    height: 256px;
-    
-    /* シート全体のサイズも本来の巨大なサイズに戻す */
-    /* 横: 512 * 12 = 6144px */
-    /* 縦: 512 * 13 = 6656px */
-    background-size: 3072px 3328px;
+/* すべてのタイマー画像（数字＋コロン）共通設定 */
+.timer-img {
+    /* スマホで見やすいサイズ感に自動調整 */
+    width: 30px; /* サイズが 0 になっていないか確認 */
+    height: auto;
+    /* PNGが透過なら mix-blend-mode は無くてもOKですが、
+       より発光させたいなら screen 等を使うと綺麗です */
+    mix-blend-mode: screen
+}
 
-    background-image: url('assets/timer/${fileNum}-sheet.png');
-    background-repeat: repeat;
-    
-    filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.8)) brightness(1.3) contrast(1.2);
-    mix-blend-mode: screen;  /* 黒背景透過 */
-    
-    margin: 0 -8px; /* 数字同士を少し重ねて不気味さを出す */
-    image-rendering: pixelated; /* ぼやける場合はここを調整 */
+/* コロンだけ少し幅を狭めたい場合の調整（オプション） */
+.timer-img[src*="colon"] {
+    transform: scale(0.9); /* 少し小さく見せる */
+    margin: 0 -2px; /* 余白を詰める */
+}
 
-    
+/* 全ての画像、または特定のクラスの画像を対象にする */
+img {
+    /* iOSでの長押しメニュー（コピー・保存）を禁止 */
+    -webkit-touch-callout: none;
+    /* テキストや画像の選択を禁止 */
+    -webkit-user-select: none;
+    user-select: none;
+   
+}
+
+/* キャラクター画像は pointer-events: auto に戻す（ホバーを検知するため） */
+#charImage {
+    pointer-events: auto !important;
+    -webkit-touch-callout: none;
+    user-select: none;
+    cursor: help; /* カーソルを「？」にすると雰囲気が出ます */
 }

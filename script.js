@@ -1,164 +1,138 @@
-window.onload = function() {
+// --- Web Audio API / BGM 設定 ---
+let audioCtx;
+let source;
+let gainNode;
+let audio;
+let isInitialized = false;
 
-// --- 設定定数 ---
+function initAudio() {
+    if (isInitialized) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audio = new Audio('audio/bgm.m4a'); 
+    audio.loop = true;
+    source = audioCtx.createMediaElementSource(audio);
+    gainNode = audioCtx.createGain();
+    source.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    isInitialized = true;
+}
 
-const COLS = 12;
-const ROWS = 13;
-const TOTAL_FRAMES = 145;
-const FPS = 30;
+window.startSite = function(isPlay) {
+    const modal = document.getElementById('startModal');
+    const bgmBtn = document.getElementById('bgmToggleBtn');
 
-let currentFrame = 0;
-
-const CHAR_FILE_MAP = {
-    ':': '10',
-    '0': '0', '1': '1', '2': '2', '3': '3', '4': '4',
-    '5': '5', '6': '6', '7': '7', '8': '8', '9': '9'
-};
-let totalSeconds = (6 * 24 * 60 * 60) + (3 * 60 * 60); // 6日3時間
-const images = ["images/kokorone1.png", "images/kokorone2.png"];
-let currentIndex = 0;
-
-// DOM要素
-const timerContainer = document.getElementById("deathTimer");
-const charImage = document.getElementById("charImage");
-const sliderContainer = document.querySelector(".slider-container");
-const bgmBtn = document.getElementById("bgmToggleBtn");
-const modal = document.getElementById("startModal");
-
-// --- 1. スプライトアニメーション (パラパラ漫画) ---
-function animate() {
-    const chars = document.querySelectorAll('.sprite-char');
-    if (chars.length === 0) { // 要素がない時はスキップしてエラー防止
-        requestAnimationFrame(animate);
-        return;
-    }
-
-    // スプライトシート内の位置（列と行）を計算
-    const col = currentFrame % COLS;
-    const row = Math.floor(currentFrame / COLS);
-    
-    // パーセント指定での座標計算
-    const posX = (col / (COLS - 1)) * 100;
-    const posY = (row / (ROWS - 1)) * 100;
-
-    // 全ての数字要素の背景位置を一斉に更新
-    chars.forEach(el => {
-        el.style.backgroundPosition = `${posX}% ${posY}%`;
+    initAudio();
+    audioCtx.resume().then(() => {
+        if (isPlay) {
+            audio.play();
+            updateBgmButton(true);
+        } else {
+            updateBgmButton(false);
+        }
     });
 
-    // 次のフレームへ（145枚までいったら0に戻る）
-    currentFrame = (currentFrame + 1) % TOTAL_FRAMES;
-    
+    modal.style.opacity = '0';
     setTimeout(() => {
-        requestAnimationFrame(animate);
-    }, 1000 / FPS);
-}
+        modal.style.display = 'none';
+        bgmBtn.style.display = 'block';
+    }, 500);
+};
 
-// --- 2. タイマー表示の更新 (1秒ごとに呼ばれる) ---
-function updateTimerDisplay() {
-    if (totalSeconds > 0) totalSeconds--;
+window.toggleBgm = function() {
+    if (!audio) return;
+    if (audio.paused) {
+        audio.play();
+        updateBgmButton(true);
+    } else {
+        audio.pause();
+        updateBgmButton(false);
+    }
+};
 
-    // M:D:H:MM:SS 形式に変換
-    const m = Math.floor(totalSeconds / (30 * 24 * 3600));
-    let rem = totalSeconds % (30 * 24 * 3600);
-    const d = Math.floor(rem / (24 * 3600));
-    rem %= (24 * 3600);
-    const h = Math.floor(rem / 3600);
-    rem %= 3600;
-    const min = Math.floor(rem / 60);
-    const s = rem % 60;
-
-    const timeStr = `${m}:${d}:${h}:${String(min).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-
-    // 文字列が変わった時だけ要素を再生成
-    if (timerContainer.dataset.lastTime !== timeStr) {
-        timerContainer.innerHTML = '';
-        for (let char of timeStr) {
-            const div = document.createElement('div');
-            div.className = 'sprite-char';
-
-            // 文字に対応するファイル名を取得（例：':'なら'10'）
-            const fileNum = CHAR_FILE_MAP[char];
-            // 画像パスを生成（※タイポに注意！ assets です）
-            div.style.backgroundImage = `url('assets/timer/${fileNum}-sheet.png')`;
-            
-            timerContainer.appendChild(div);
-        }
-        timerContainer.dataset.lastTime = timeStr;
+function updateBgmButton(isPlaying) {
+    const btn = document.getElementById('bgmToggleBtn');
+    if (isPlaying) {
+        btn.innerHTML = '<span id="bgmIcon">🔊</span> ON';
+    } else {
+        btn.innerHTML = '<span id="bgmIcon">🔇</span> OFF';
     }
 }
 
-// --- 3. 観測システム (長押し/マウスホバー) ---
-function startObserving(e) {
-    if(e && e.type === 'touchstart' && e.cancelable) e.preventDefault();
-    timerContainer.classList.add("visible");
-}
-function stopObserving() {
-    timerContainer.classList.remove("visible");
-}
+// --- 死期タイマー (静止画JPG版) ---
+window.addEventListener('load', function() {
+    const ASSETS_PATH = 'assets/timer/'; 
+    const EXTENSION = '.png'; 
 
-// --- 4. BGM・スライダーなどの既存機能 ---
-// (ここに以前の startSite, playBgm, changeImage 等の関数をそのまま入れます)
-function changeImage(direction) {
-    currentIndex = (currentIndex + direction + images.length) % images.length;
-    charImage.src = images[currentIndex];
-}
+    let totalSeconds = (6 * 24 * 60 * 60) + (3 * 60 * 60); 
+    const timerContainer = document.getElementById("deathTimer");
+    const charImage = document.getElementById("charImage");
 
-let audioContext, bgmSource, bgmBuffer, isPlaying = false;
-const bgmUrl = 'audio/bgm.m4a';
+   // --- マウスイベントの登録 ---
+    // キャラクター画像にマウスが乗ったら表示
+    charImage.addEventListener('mouseenter', () => {
+        timerContainer.classList.add('is-visible');
+    });
+    // マウスが離れたら非表示
+    charImage.addEventListener('mouseleave', () => {
+        timerContainer.classList.remove('is-visible');
+    });
 
-async function startSite(allowMusic) {
-    modal.style.opacity = '0';
-    setTimeout(() => { modal.style.display = 'none'; bgmBtn.style.display = 'block'; }, 500);
-    if (allowMusic) { await loadAudio(); playBgm(); }
-}
+    // 右クリック禁止
+    document.addEventListener('contextmenu', (e) => {
+        if (e.target.tagName === 'IMG') e.preventDefault();
+    }, false);
 
-async function loadAudio() {
-    try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        audioContext = new AudioContext();
-        const response = await fetch(bgmUrl);
-        const arrayBuffer = await response.arrayBuffer();
-        bgmBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    } catch (e) { console.error(e); }
-}
+    function updateTimerDisplay() {
+        if (totalSeconds > 0) totalSeconds--;
 
-function playBgm() {
-    if (!bgmBuffer) return;
-    if (audioContext.state === 'suspended') audioContext.resume();
-    bgmSource = audioContext.createBufferSource();
-    bgmSource.buffer = bgmBuffer;
-    bgmSource.loop = true;
-    bgmSource.connect(audioContext.destination);
-    bgmSource.start(0);
-    isPlaying = true;
-    updateBtnView(true);
-}
+        const m = Math.floor(totalSeconds / (30 * 24 * 3600));
+        let rem = totalSeconds % (30 * 24 * 3600);
+        const d = Math.floor(rem / (24 * 3600));
+        rem %= (24 * 3600);
+        const h = Math.floor(rem / 3600);
+        rem %= 3600;
+        const min = Math.floor(rem / 60);
+        const s = rem % 60;
 
-function stopBgm() {
-    if (bgmSource) { bgmSource.stop(); bgmSource = null; }
-    isPlaying = false;
-    updateBtnView(false);
-}
+        const timeStr = `${m}:${d}:${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 
-function toggleBgm() { if (isPlaying) stopBgm(); else playBgm(); }
-function updateBtnView(on) {
-    bgmBtn.innerHTML = on ? '<span style="color:#93c5fd;">🔊</span> ON' : '<span style="color:#64748b;">🔇</span> OFF';
-}
+        if (timerContainer.childElementCount !== timeStr.length) {
+            timerContainer.innerHTML = '';
+            for (let i = 0; i < timeStr.length; i++) {
+                const img = document.createElement('img');
+                img.className = 'timer-img';
+                timerContainer.appendChild(img);
+            }
+        }
 
-// 最後に実行開始の命令を入れる
+        const imgElements = timerContainer.querySelectorAll('.timer-img');
+        for (let i = 0; i < timeStr.length; i++) {
+            const char = timeStr[i];
+            const imgEl = imgElements[i];
+            
+            // 1. まずファイル名を決める
+            let fileName = (char === ':') ? `colon${EXTENSION}` : `${char}${EXTENSION}`;
+            
+            // 2. フルパスを組み立てる (ここで let を使って定義)
+            let fullPath = `${ASSETS_PATH}${fileName}`; 
+
+            // 3. 画像の src を更新する
+            if (!imgEl.src.includes(fileName)) {
+                imgEl.src = fullPath;
+                imgEl.alt = char;
+            }
+        }
+    }
+
     setInterval(updateTimerDisplay, 1000);
     updateTimerDisplay();
-    animate(); // パラパラアニメ開始
+});
 
-// --- 5. イベント登録と実行開始 ---
-sliderContainer.addEventListener("mouseenter", startObserving);
-sliderContainer.addEventListener("mouseleave", stopObserving);
-sliderContainer.addEventListener("touchstart", startObserving, {passive: false});
-sliderContainer.addEventListener("touchend", stopObserving);
-
-// script.js内から呼び出せるようにグローバルに関数を公開（ボタンonclick用）
-    window.startSite = startSite;
-    window.toggleBgm = toggleBgm;
-    window.changeImage = changeImage;
+// --- キャラクター画像切り替え ---
+let currentImgIndex = 1;
+window.changeImage = function(dir) {
+    currentImgIndex += dir;
+    if (currentImgIndex > 2) currentImgIndex = 1; 
+    if (currentImgIndex < 1) currentImgIndex = 2;
+    document.getElementById('charImage').src = `images/kokorone${currentImgIndex}.png`;
 };
