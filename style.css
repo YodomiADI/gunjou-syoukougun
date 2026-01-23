@@ -307,7 +307,12 @@ footer {
 
 .death-timer-container.is-visible {
     opacity: 1 !important;
-    
+    pointer-events: auto; /* 表示されたらクリックできるようにする ★重要 */
+}
+
+/* 捕まっている間はキャラクターのホバー判定を邪魔しないように少し調整 */
+.death-timer-container.is-captured {
+    z-index: 1001;
 }
 
 /* すべてのタイマー画像（数字＋コロン）共通設定 */
@@ -342,4 +347,114 @@ img {
     -webkit-touch-callout: none;
     user-select: none;
     cursor: help; /* カーソルを「？」にすると雰囲気が出ます */
+}
+
+/* --- 運命が書き換わる瞬間の演出（ノイズシェーダー風） --- */
+
+/* 変動中のコンテナ全体の発光 */
+.death-timer-container.is-changing {
+    /* 全体を強く発光させる */
+    filter: drop-shadow(0 0 20px rgba(255, 200, 50, 0.8)) brightness(1.5);
+    /* ガタガタ震える */
+    animation: container-shake 0.05s infinite alternate;
+}
+
+@keyframes container-shake {
+    0% { transform: translateX(-50%) translate(2px, 0); }
+    100% { transform: translateX(-50%) translate(-2px, 0); }
+}
+
+/* 個々の数字画像に対する演出 */
+.death-timer-container.is-changing .timer-img {
+    position: relative;
+    /* 元の画像も少し色をずらして震わせる */
+    animation: glitch-skew 0.1s infinite linear alternate-reverse;
+    /* 色収差のような効果 */
+    text-shadow: -2px 0 #ff0000, 2px 0 #00ffff; 
+}
+
+/* ノイズテクスチャを使った揺らぎ（マスク効果） */
+.death-timer-container.is-changing .timer-img::before,
+.death-timer-container.is-changing .timer-img::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    
+    /* ノイズ画像をリピートさせる */
+    background-repeat: repeat;
+    /* 合成モードで重ねてランダムさを出す */
+    mix-blend-mode: hard-light;
+}
+
+/* 1枚目のノイズ（細かい揺らぎ） */
+.death-timer-container.is-changing .timer-img::before {
+    /* ノイズ1（image_13.png）を指定 */
+    background-image: url('assets/texture/image_13.png');
+    background-size: 50% 50%; /* 小さくリピート */
+    opacity: 0.6;
+    /* 高速でランダムに移動させる */
+    animation: noise-move-1 0.2s infinite linear;
+    /* このノイズで画像を切り抜く（マスク） */
+    -webkit-mask-image: url('assets/texture/image_13.png');
+    mask-image: url('assets/texture/image_13.png');
+    -webkit-mask-size: 50% 50%;
+    mask-size: 50% 50%;
+}
+
+/* 2枚目のノイズ（大きな歪み） */
+.death-timer-container.is-changing .timer-img::after {
+    /* ノイズ2（image_14.png）を指定 */
+    background-image: url('assets/texture/image_14.png');
+    background-size: 150% 150%; /* 大きく引き伸ばす */
+    opacity: 0.4;
+    /* 異なる速度と方向で移動させる */
+    animation: noise-move-2 0.5s infinite linear reverse;
+    /* このノイズでも画像を切り抜く */
+    -webkit-mask-image: url('assets/texture/image_14.png');
+    mask-image: url('assets/texture/image_14.png');
+    -webkit-mask-size: 150% 150%;
+    mask-size: 150% 150%;
+}
+
+/* --- アニメーション定義 --- */
+
+/* 画像本体の歪み */
+@keyframes glitch-skew {
+    0% { transform: skewX(0deg) scale(1); filter: hue-rotate(0deg); }
+    20% { transform: skewX(-5deg) scale(1.02); filter: hue-rotate(90deg); }
+    40% { transform: skewX(5deg) scale(0.98); filter: hue-rotate(-90deg); }
+    60% { transform: skewX(-2deg) scale(1.01); filter: hue-rotate(45deg); }
+    80% { transform: skewX(2deg) scale(0.99); filter: hue-rotate(-45deg); }
+    100% { transform: skewX(0deg) scale(1); filter: hue-rotate(0deg); }
+}
+
+/* ノイズ1の移動 */
+@keyframes noise-move-1 {
+    0% { background-position: 0 0; -webkit-mask-position: 0 0; }
+    100% { background-position: 100px 100px; -webkit-mask-position: 100px 100px; }
+}
+
+/* ノイズ2の移動 */
+@keyframes noise-move-2 {
+    0% { background-position: 0 0; -webkit-mask-position: 0 0; }
+    100% { background-position: -200px 50px; -webkit-mask-position: -200px 50px; }
+}
+
+/* 運命が変わった後の穏やかな光（変更なし） */
+.death-timer-container.fate-changed {
+    filter: drop-shadow(0 0 10px rgba(100, 200, 255, 0.6)) brightness(1.2);
+    transition: filter 1s ease;
+    /* アニメーションを停止 */
+    animation: none;
+}
+.death-timer-container.fate-changed .timer-img,
+.death-timer-container.fate-changed .timer-img::before,
+.death-timer-container.fate-changed .timer-img::after {
+    animation: none;
+    -webkit-mask-image: none;
+    mask-image: none;
 }
