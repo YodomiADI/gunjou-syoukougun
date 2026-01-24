@@ -80,64 +80,93 @@ window.addEventListener('load', function() {
     const CAPTURE_RADIUS = 10;       // この距離内に入ったら捕まる(px)
 
     // --- 提案の数式に基づく反発力計算関数 ---
-    // y = (2Nx) / (x^2 + N^2)
-    // x: 現在の距離, N: ピーク距離。戻り値は 0.0〜1.0 の範囲になる
     function calculateRepulsion(distance, peakN) {
-        // 距離が0だとゼロ除算になるので微小な値を足す
         const d = distance < 1 ? 1 : distance;
         return (2 * peakN * d) / (d * d + peakN * peakN);
     }
 
-    // --- マウス移動イベント（ふよふよ避ける＆捕まる処理） ---
+    // --- マウス移動イベント（個別逃走 ＆ 横棒判定） ---
+    const HIT_BAR_HEIGHT = 15; // 透明な横棒の太さ（上下幅 px）
+    const DIGIT_ESCAPE_POWER = 60; // 数字が逃げる強さ
+
     document.addEventListener('mousemove', (e) => {
         // 表示されていない、またはアニメーション中は計算しない
         if (!timerContainer.classList.contains('is-visible') || isAnimating) return;
 
-        // タイマーの「本来あるべき中心位置」を算出
-        // コンテナは left: 50%, top: 30% に配置されているので、そこを基準にする
+        // 基準点（キャラクターの頭上）の計算
         const parentRect = charImage.parentElement.getBoundingClientRect();
-        const baseCenterX = parentRect.left + parentRect.width / 2;
-        const baseCenterY = parentRect.top + parentRect.height * 0.3; // top: 30%
-        
-        // マウスと「基準位置」の距離
-        const dx = e.clientX - baseCenterX;
-        const dy = e.clientY - baseCenterY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        // 親要素の中心X (left: 20% に合わせる)
+        const baseCenterX = parentRect.left + parentRect.width * 0.2;
+        // 親要素の上から30%の位置Y（CSSのtop:30%に合わせる）
+        const baseCenterY = parentRect.top + parentRect.height * 0.3;
 
+        const mouseX = e.clientX;
+        const mouseY = e.clientY;
+
+        // --- 1. 捕まっている時（全体追従） ---
         if (isCaptured) {
-            // 【台風の目】基準位置からのマウスのズレをそのまま適用（滑らかに追従）
+            // 基準点からのズレを計算して、コンテナごと移動
+            const dx = mouseX - baseCenterX;
+            const dy = mouseY - baseCenterY;
+            
+            // コンテナをマウスに追従させる
             timerContainer.style.transform = `translateX(-50%) translate(${dx}px, ${dy}px)`;
+            
+            // 数字ごとのズレはリセット（整列させる）
+            const wrappers = timerContainer.querySelectorAll('.digit-wrapper');
+            wrappers.forEach(w => {
+                w.style.transform = 'translate(0px, 0px)';
+            });
             return;
         }
 
-        // 捕獲判定：基準位置に十分近づいたらキャプチャ
-        if (distance < CAPTURE_RADIUS) {
+        // --- 2. 捕まっていない時（個別逃走） ---
+        // コンテナ自体は基準位置から動かさない
+        timerContainer.style.transform = `translateX(-50%) translate(0px, 0px)`;
+
+        const wrappers = timerContainer.querySelectorAll('.digit-wrapper');
+        let caughtTrigger = false; // 誰か捕まったか？
+
+        wrappers.forEach(wrapper => {
+            const rect = wrapper.getBoundingClientRect();
+            const digitCenterX = rect.left + rect.width / 2;
+            const digitCenterY = rect.top + rect.height / 2;
+
+            const dx = mouseX - digitCenterX;
+            const dy = mouseY - digitCenterY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            // --- 透明な横棒の当たり判定 ---
+            const isHitY = Math.abs(dy) < HIT_BAR_HEIGHT;
+            const isHitX = Math.abs(dx) < (rect.width / 1.5); 
+
+            if (isHitY && isHitX) {
+                caughtTrigger = true;
+            }
+
+            // --- 個別に逃げる計算 ---
+            const repulsion = calculateRepulsion(dist, 40); 
+            
+            const moveX = -dx * repulsion * (DIGIT_ESCAPE_POWER / (dist + 1));
+            const moveY = -dy * repulsion * (DIGIT_ESCAPE_POWER / (dist + 1));
+
+            wrapper.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        });
+
+        // 誰か一文字でも横棒に触れたら、全体が捕まる
+        if (caughtTrigger) {
             isCaptured = true;
-            timerContainer.classList.add('is-captured'); // CSS用
-            return;
+            timerContainer.classList.add('is-captured');
         }
-
-        // 【回避行動】数式に基づいて避ける
-        const repulsionStrength = calculateRepulsion(distance, REPULSION_PEAK_DIST);
-        
-        // 基準位置からマウスとは「逆方向」に押し出す
-        // distanceが小さいほど大きく、離れると0に近づく
-        const moveX = -dx * (repulsionStrength * REPULSION_POWER / (distance + 1));
-        const moveY = -dy * (repulsionStrength * REPULSION_POWER / (distance + 1));
-
-        timerContainer.style.transform = `translateX(-50%) translate(${moveX}px, ${moveY}px)`;
     });
 
-    // --- クリックイベントも念のため調整 ---
+    // --- クリックイベント ---
     timerContainer.addEventListener('mousedown', (e) => {
-        // 捕まっていない、またはアニメーション中は無視
         if (!isCaptured || isAnimating) return;
 
         if (!isFateChanged) {
-            // まだ救っていないなら、救済（43年へ）
             triggerFateChange();
         } else {
-            // すでに救済済みなら、絶望（6日へ戻す）
             triggerRevertFate();
         }
     });
@@ -147,32 +176,29 @@ window.addEventListener('load', function() {
         isCaptured = false;
         isFateChanged = true;
         isAnimating = true;
-        timerContainer.classList.add('is-changing'); // ガガガッという演出クラス付与
+        timerContainer.classList.add('is-changing'); 
 
-        // パラパラ漫画のように数字をランダムに変動させる演出
         let count = 0;
         const interval = setInterval(() => {
-            // 一時的にデタラメな大きな数字を表示
             const randomTime = Math.floor(Math.random() * LONG_LIFE_SECONDS);
             updateTimerDisplay(randomTime);
             
             count++;
-            if (count > 20) { // 20回（約1秒間）変動させる
+            if (count > 20) { 
                 clearInterval(interval);
                 finalizeFate();
             }
-        }, 50); // 0.05秒ごとに更新
+        }, 50); 
     }
 
     // --- 運命確定処理 ---
     function finalizeFate() {
         timerContainer.classList.remove('is-changing');
-        timerContainer.classList.add('fate-changed'); // 穏やかな光へ
-        totalSeconds = LONG_LIFE_SECONDS; // 本来の（長い）寿命をセット
+        timerContainer.classList.add('fate-changed'); 
+        totalSeconds = LONG_LIFE_SECONDS; 
         updateTimerDisplay(totalSeconds);
         isAnimating = false;
 
-        // 確定後、元の位置にスッと戻す演出
         setTimeout(() => {
              timerContainer.style.transform = `translateX(-50%) translate(0px, 0px)`;
         }, 500);
@@ -181,12 +207,11 @@ window.addEventListener('load', function() {
     // --- 運命を元に戻す（絶望）アニメーション関数 ---
     function triggerRevertFate() {
         isAnimating = true;
-        timerContainer.classList.remove('fate-changed'); // 穏やかな光を消す
-        timerContainer.classList.add('is-changing');    // ノイズ演出開始
+        timerContainer.classList.remove('fate-changed'); 
+        timerContainer.classList.add('is-changing');    
 
         let count = 0;
         const interval = setInterval(() => {
-            // 変動演出：短い寿命の範囲（0〜12日程度）で数字を暴れさせる
             const randomTime = Math.floor(Math.random() * (12 * 24 * 60 * 60));
             updateTimerDisplay(randomTime);
         
@@ -200,26 +225,25 @@ window.addEventListener('load', function() {
 
     // --- 絶望確定処理 ---
     function finalizeRevert() {
-        isFateChanged = false; // 運命が変わっていない状態に戻す
-        isCaptured = false;    // 捕獲を解除（ふよふよ逃げる状態へ）
+        isFateChanged = false; 
+        isCaptured = false;    
         timerContainer.classList.remove('is-changing');
     
-        totalSeconds = (6 * 24 * 60 * 60) + (3 * 60 * 60); // 元の6日3時間
+        totalSeconds = (6 * 24 * 60 * 60) + (3 * 60 * 60); 
         updateTimerDisplay(totalSeconds);
         isAnimating = false;
 
-        // 元の位置にスッと戻す
         setTimeout(() => {
             timerContainer.style.transform = `translateX(-50%) translate(0px, 0px)`;
         }, 500);
     }
 
-    // --- タイマー表示更新関数（引数で時間を渡せるように変更） ---
+    // --- [修正版] タイマー表示更新関数 ---
+    // ここで <span> (digit-wrapper) を作る構造にしています
     function updateTimerDisplay(currentSeconds = totalSeconds) {
-        // 通常時は1秒減らす（アニメーション中は減らさない）
         if (!isAnimating && currentSeconds > 0 && currentSeconds === totalSeconds) {
-             totalSeconds--;
-             currentSeconds = totalSeconds;
+                totalSeconds--;
+                currentSeconds = totalSeconds;
         }
 
         const m = Math.floor(currentSeconds / (30 * 24 * 3600));
@@ -231,26 +255,33 @@ window.addEventListener('load', function() {
         const min = Math.floor(rem / 60);
         const s = rem % 60;
 
-        // 年の表示も追加（43年とかになるので）
-        // ※今回は簡易的に「月:日:時...」の先頭を年に見立てます。
-        // 必要に応じて「年」の画像を追加したり、フォーマットを変えてください。
         const timeStr = `${m}:${d}:${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 
+        // 構造が違う（桁数が変わった）場合は作り直し
         if (timerContainer.childElementCount !== timeStr.length) {
             timerContainer.innerHTML = '';
             for (let i = 0; i < timeStr.length; i++) {
+                // 個別に動かすための透明な箱（ラッパー）を作る
+                const wrapper = document.createElement('span');
+                wrapper.className = 'digit-wrapper'; 
+                
                 const img = document.createElement('img');
                 img.className = 'timer-img';
-                timerContainer.appendChild(img);
+                
+                wrapper.appendChild(img);
+                timerContainer.appendChild(wrapper);
             }
         }
 
-        const imgElements = timerContainer.querySelectorAll('.timer-img');
+        // 画像のsrcを更新
+        const wrappers = timerContainer.querySelectorAll('.digit-wrapper');
         for (let i = 0; i < timeStr.length; i++) {
             const char = timeStr[i];
-            const imgEl = imgElements[i];
+            const imgEl = wrappers[i].querySelector('img'); 
+            
             let fileName = (char === ':') ? `colon${EXTENSION}` : `${char}${EXTENSION}`;
             let fullPath = `${ASSETS_PATH}${fileName}`;
+
             if (!imgEl.src.includes(fileName)) {
                 imgEl.src = fullPath;
                 imgEl.alt = char;
@@ -258,17 +289,14 @@ window.addEventListener('load', function() {
         }
     }
 
-   // --- マウスイベントの登録 ------ ホバー表示/非表示 ---
-    // キャラクター画像にマウスが乗ったら表示
+    // --- ホバー表示/非表示 ---
     charImage.addEventListener('mouseenter', () => {
         timerContainer.classList.add('is-visible');
     });
-    // マウスが離れたら非表示
+    
     charImage.addEventListener('mouseleave', () => {
-        // 捕まっている最中やアニメーション中は消さない
         if (!isCaptured && !isAnimating) {
             timerContainer.classList.remove('is-visible');
-            // 元の位置に戻す
             timerContainer.style.transform = `translateX(-50%) translate(0px, 0px)`;
         }
     });
@@ -278,51 +306,11 @@ window.addEventListener('load', function() {
         if (e.target.tagName === 'IMG') e.preventDefault();
     }, false);
 
-    function updateTimerDisplay() {
-        if (totalSeconds > 0) totalSeconds--;
-
-        const m = Math.floor(totalSeconds / (30 * 24 * 3600));
-        let rem = totalSeconds % (30 * 24 * 3600);
-        const d = Math.floor(rem / (24 * 3600));
-        rem %= (24 * 3600);
-        const h = Math.floor(rem / 3600);
-        rem %= 3600;
-        const min = Math.floor(rem / 60);
-        const s = rem % 60;
-
-        const timeStr = `${m}:${d}:${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-
-        if (timerContainer.childElementCount !== timeStr.length) {
-            timerContainer.innerHTML = '';
-            for (let i = 0; i < timeStr.length; i++) {
-                const img = document.createElement('img');
-                img.className = 'timer-img';
-                timerContainer.appendChild(img);
-            }
-        }
-
-        const imgElements = timerContainer.querySelectorAll('.timer-img');
-        for (let i = 0; i < timeStr.length; i++) {
-            const char = timeStr[i];
-            const imgEl = imgElements[i];
-            
-            // 1. まずファイル名を決める
-            let fileName = (char === ':') ? `colon${EXTENSION}` : `${char}${EXTENSION}`;
-            
-            // 2. フルパスを組み立てる (ここで let を使って定義)
-            let fullPath = `${ASSETS_PATH}${fileName}`; 
-
-            // 3. 画像の src を更新する
-            if (!imgEl.src.includes(fileName)) {
-                imgEl.src = fullPath;
-                imgEl.alt = char;
-            }
-        }
-    }
-
-    setInterval(updateTimerDisplay, 1000);
+    // タイマースタート
+    setInterval(() => updateTimerDisplay(), 1000);
     updateTimerDisplay();
-});
+
+}); // ← loadイベントの閉じカッコ
 
 // --- キャラクター画像切り替え ---
 let currentImgIndex = 1;
