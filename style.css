@@ -458,3 +458,16 @@ img {
     -webkit-mask-image: none;
     mask-image: none;
 }
+
+/* --- 数字を個別に動かすための設定 --- */
+.digit-wrapper {
+    display: inline-block; /* これがないと位置が動かせない */
+    position: relative;
+    transition: transform 0.1s ease-out; /* ふよふよ動くための滑らかさ */
+    will-change: transform; /* パフォーマンス最適化 */
+}
+
+/* 捕まった時はビシッと整列させたいのでtransitionを変える */
+.death-timer-container.is-captured .digit-wrapper {
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
