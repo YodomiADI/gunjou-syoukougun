@@ -478,3 +478,128 @@ img {
 .death-timer-container.is-captured .digit-wrapper {
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+
+/*--- 運命鑑賞モードのオーバーレイ　---*/
+/* オーバーレイ全体 */
+#intervention-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(2, 6, 23, 0.97); /* ほぼ真っ暗な藍色 */
+    z-index: 10000;
+
+    display: flex;
+    flex-direction: column;
+    justify-content:flex-start; /* 上詰めに変更 */
+    padding-top: 5vh; /* 画面上部から少し離す */
+
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+}
+
+/* 表示状態 */
+#intervention-overlay.is-active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* 中央のコンテンツ配置 */
+.overlay-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;
+    z-index: 10001; /* 他の要素より確実に前に出す */
+}
+
+/* ガイドテキスト（儀式の手順） */
+#intervention-guide {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 40px 0; /* 下に余白 */
+    text-align: center;
+    color: #93c5fd; /* 案内は水色 */
+    font-family: 'Shippori Mincho', serif;
+    font-size: 1.2rem;
+    line-height: 2;
+    letter-spacing: 0.2em;
+    position: relative; /* z-indexを確実に機能させる */
+    z-index: 10005;    /* 圧倒的高さ */
+    margin-bottom: 20px;
+    /* 背景色に紛れないよう、テキストに少し影をつける */
+    text-shadow: 0 0 25px rgba(0, 0, 0, 1), 0 0 5px rgba(25, 57, 95, 0.8);
+    pointer-events: none; /* テキストがクリックの邪魔をしないように */
+}
+
+/* スクロールロック用（JSでbodyに付与） */
+body.lock-scroll {
+    overflow: hidden;
+}
+
+/* 手順ガイドのリスト */
+#intervention-guide {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 30px;
+    text-align: center;
+    color: #20446d; /* 案内は水色 */
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+}
+
+#intervention-guide li {
+    margin-bottom: 10px;
+    opacity: 1; /* 0.8から1へ変更して視認性をアップ */
+    text-shadow: 0 0 10px rgba(147, 196, 253, 0.671); /* ほんのり光らせる */
+}
+
+/* 儀式中断ボタン */
+#close-overlay {
+    margin-top: 40px;
+    background: transparent;
+    border: 1px solid #334155;
+    color: #64748b;
+    cursor: pointer;
+    padding: 5px 15px;
+}
+
+/* 中断ボタン */
+#close-overlay {
+    margin-top: 30px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #334155;
+    color: #64748b;
+    cursor: pointer;
+    padding: 10px 25px;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    z-index: 10005;
+}
+
+#close-overlay:hover {
+    color: #cbd5e1;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #64748b;
+}
+
+/* 追いかけっこ対象のコンテナ（中央配置の微調整） */
+#focused-char-container {
+    position: relative;
+    z-index: 10001;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    /* 画像がデカすぎてテキストを押し出さないよう制限 */
+    max-height: 60vh; 
+}
+
+/* タイマーが画像と重なりすぎないように調整 */
+#focused-char-container #deathTimer {
+    /* 移動先でのタイマー位置を強制リセット */
+    z-index: 10002;
+}
