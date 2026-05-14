@@ -113,6 +113,7 @@
                     </div>
                 <div class="char-info">
                     <h3>ココロネ</h3>
+                    <button onclick="startIntervention()">運命に干渉する</button>
                     <p class="char-role">心が読める少女</p>
                     <p>「1週間……1週間しかないんだね。」</p>
                     <p>
@@ -130,7 +131,18 @@
     <footer>
         <p>&copy; 2024 YodomiADI / Studio YomiDomi</p>
     </footer>
+    <div id="intervention-overlay" class="overlay-hidden">
+        <div class="overlay-content">
+            <!-- JSで「一、二、三...」のガイドが入る場所 -->
+            <ul id="intervention-guide"></ul>
+        
+            <!-- 追いかけっこの対象（画像とタイマー）がここへ移動してくる -->
+            <div id="focused-char-container"></div>
 
+            <!-- 儀式を途中でやめるためのボタン -->
+            <button id="close-overlay">儀式を中断する</button>
+        </div>
+    </div>
     <!-- 波紋エフェクト用のライブラリを追加 -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.ripples/0.5.3/jquery.ripples.min.js"></script>
